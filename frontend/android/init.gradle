@@ -1,0 +1,15 @@
+initscript {
+    dependencies {
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22'
+    }
+}
+
+allprojects {
+    afterEvaluate { project ->
+        project.tasks.withType(Class.forName('org.jetbrains.kotlin.gradle.tasks.KotlinCompile')) { task ->
+            task.kotlinOptions {
+                freeCompilerArgs += ['-Xskip-metadata-version-check']
+            }
+        }
+    }
+}
