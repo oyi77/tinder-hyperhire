@@ -3,9 +3,10 @@ set -e
 
 # Create required directories
 mkdir -p bootstrap/cache
-mkdir -p storage/framework/cache
+mkdir -p storage/framework/cache/data
 mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
+mkdir -p storage/framework/testing
 mkdir -p storage/logs
 
 # Ensure directories are writable
