@@ -2,15 +2,50 @@
 
 use Illuminate\Support\Str;
 
+// Helper function to get database URL (Railway MySQL uses MYSQL_URL, PostgreSQL uses DATABASE_URL)
+$getDatabaseUrl = function () {
+    $mysqlUrl = env('MYSQL_URL');
+    $databaseUrl = env('DATABASE_URL');
+    
+    // Railway MySQL provides MYSQL_URL, PostgreSQL provides DATABASE_URL
+    return $mysqlUrl ?: $databaseUrl;
+};
+
+$dbUrl = $getDatabaseUrl();
+
+// Auto-detect connection type from URL scheme
+$autoDetectConnection = function ($url) {
+    if (!$url) {
+        return env('DB_CONNECTION', 'mysql');
+    }
+    
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    
+    if ($scheme && str_contains($scheme, 'mysql')) {
+        return 'mysql';
+    }
+    
+    if ($scheme && (str_contains($scheme, 'postgres') || str_contains($scheme, 'pgsql'))) {
+        return 'pgsql';
+    }
+    
+    // Default to mysql if MYSQL_URL is set, otherwise check DB_CONNECTION
+    if (env('MYSQL_URL')) {
+        return 'mysql';
+    }
+    
+    return env('DB_CONNECTION', 'mysql');
+};
+
 return [
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => $autoDetectConnection($dbUrl),
 
     'connections' => [
 
         'sqlite' => [
             'driver' => 'sqlite',
-            'url' => env('DATABASE_URL'),
+            'url' => $dbUrl,
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
@@ -18,12 +53,12 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', parse_url(env('DATABASE_URL'), PHP_URL_PATH) ? ltrim(parse_url(env('DATABASE_URL'), PHP_URL_PATH), '/') : 'tinder_app'),
-            'username' => env('DB_USERNAME', parse_url(env('DATABASE_URL'), PHP_URL_USER) ?: 'root'),
-            'password' => env('DB_PASSWORD', parse_url(env('DATABASE_URL'), PHP_URL_PASS) ?: ''),
+            'url' => $dbUrl,
+            'host' => env('DB_HOST', $dbUrl ? (parse_url($dbUrl, PHP_URL_HOST) ?: '127.0.0.1') : '127.0.0.1'),
+            'port' => env('DB_PORT', $dbUrl ? (parse_url($dbUrl, PHP_URL_PORT) ?: '3306') : '3306'),
+            'database' => env('DB_DATABASE', $dbUrl ? (parse_url($dbUrl, PHP_URL_PATH) ? ltrim(parse_url($dbUrl, PHP_URL_PATH), '/') : 'tinder_app') : 'tinder_app'),
+            'username' => env('DB_USERNAME', $dbUrl ? (parse_url($dbUrl, PHP_URL_USER) ?: 'root') : 'root'),
+            'password' => env('DB_PASSWORD', $dbUrl ? (parse_url($dbUrl, PHP_URL_PASS) ?: '') : ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
@@ -38,12 +73,12 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', parse_url(env('DATABASE_URL'), PHP_URL_HOST) ?: '127.0.0.1'),
-            'port' => env('DB_PORT', parse_url(env('DATABASE_URL'), PHP_URL_PORT) ?: '5432'),
-            'database' => env('DB_DATABASE', parse_url(env('DATABASE_URL'), PHP_URL_PATH) ? ltrim(parse_url(env('DATABASE_URL'), PHP_URL_PATH), '/') : 'tinder_app'),
-            'username' => env('DB_USERNAME', parse_url(env('DATABASE_URL'), PHP_URL_USER) ?: 'root'),
-            'password' => env('DB_PASSWORD', parse_url(env('DATABASE_URL'), PHP_URL_PASS) ?: ''),
+            'url' => $dbUrl,
+            'host' => env('DB_HOST', $dbUrl ? (parse_url($dbUrl, PHP_URL_HOST) ?: '127.0.0.1') : '127.0.0.1'),
+            'port' => env('DB_PORT', $dbUrl ? (parse_url($dbUrl, PHP_URL_PORT) ?: '5432') : '5432'),
+            'database' => env('DB_DATABASE', $dbUrl ? (parse_url($dbUrl, PHP_URL_PATH) ? ltrim(parse_url($dbUrl, PHP_URL_PATH), '/') : 'tinder_app') : 'tinder_app'),
+            'username' => env('DB_USERNAME', $dbUrl ? (parse_url($dbUrl, PHP_URL_USER) ?: 'root') : 'root'),
+            'password' => env('DB_PASSWORD', $dbUrl ? (parse_url($dbUrl, PHP_URL_PASS) ?: '') : ''),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
