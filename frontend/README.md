@@ -61,9 +61,12 @@ npm start
 ## API Configuration
 
 The API URL is automatically configured:
-- **iOS Simulator**: `http://localhost:8000/api`
-- **Android Emulator**: `http://10.0.2.2:8000/api`
-- **Physical Device**: Update `src/utils/apiConfig.ts` with your computer's IP
+- **Development (iOS Simulator)**: `http://localhost:8000/api`
+- **Development (Android Emulator)**: `http://10.0.2.2:8000/api`
+- **Production**: `https://tinder-hyperhire-production.up.railway.app/api`
+- **Physical Device (Dev)**: Update `src/utils/apiConfig.ts` with your computer's IP
+
+To override the API URL, set the `API_URL` environment variable.
 
 ## Project Structure (Atomic Design)
 

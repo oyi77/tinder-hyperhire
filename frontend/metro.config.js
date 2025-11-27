@@ -6,7 +6,7 @@ const config = {
   resolver: {
     // Block debugger worker files from being resolved
     blockList: [
-      /.*[\\/]debugger-ui[\\/]debuggerWorker\..*$/,
+      /.*[\/\\]debugger-ui[\/\\]debuggerWorker\..*$/,
       /.*debuggerWorker.*/,
     ],
     // Custom resolver to handle debugger worker files gracefully
