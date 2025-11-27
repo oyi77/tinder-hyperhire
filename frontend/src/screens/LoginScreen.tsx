@@ -14,6 +14,7 @@ import Button from '../components/atoms/Button';
 import Text from '../components/atoms/Text';
 import {authService} from '../services/api';
 import {userState, isAuthenticatedState} from '../store/authState';
+import {getErrorMessage} from '../utils/errorHandler';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('test@example.com');
@@ -29,10 +30,8 @@ const LoginScreen: React.FC = () => {
         setIsAuthenticated(true);
       },
       onError: (error: any) => {
-        Alert.alert(
-          'Login Failed',
-          error?.response?.data?.message || 'Invalid credentials',
-        );
+        const errorMessage = getErrorMessage(error);
+        Alert.alert('Login Failed', errorMessage);
       },
     },
   );

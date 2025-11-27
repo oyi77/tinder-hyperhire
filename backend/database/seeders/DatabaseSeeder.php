@@ -17,15 +17,20 @@ class DatabaseSeeder extends Seeder
             ['password' => Hash::make('password123')]
         );
 
+        // Update password to ensure it's correct (in case user was created before)
+        if ($testUser->wasRecentlyCreated === false) {
+            $testUser->update(['password' => Hash::make('password123')]);
+        }
+
         if (!$testUser->profile) {
             $testUser->profile()->create([
             'name' => 'Test User',
             'age' => 28,
-            'pictures' => json_encode([
+            'pictures' => [
                 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
                 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
                 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-            ]),
+            ],
             'location' => 'New York, NY',
             ]);
         }
@@ -74,7 +79,7 @@ class DatabaseSeeder extends Seeder
                     ],
                     [
                         'age' => $age,
-                        'pictures' => json_encode($pictures),
+                        'pictures' => $pictures,
                         'location' => $locations[$i % count($locations)],
                     ]
                 );

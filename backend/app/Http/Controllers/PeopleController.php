@@ -254,5 +254,41 @@ class PeopleController extends Controller
 
         return response()->json(['message' => 'Like undone successfully']);
     }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/people/{id}/dislike",
+     *     tags={"People"},
+     *     summary="Undo dislike",
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Dislike undone successfully"
+     *     )
+     * )
+     */
+    public function undoDislike(Request $request, $id)
+    {
+        $user = $request->user();
+
+        $like = Like::where('liker_id', $user->id)
+            ->where('liked_id', $id)
+            ->where('action', 'dislike')
+            ->first();
+
+        if (!$like) {
+            return response()->json(['message' => 'Dislike not found'], 404);
+        }
+
+        $like->delete();
+
+        return response()->json(['message' => 'Dislike undone successfully']);
+    }
 }
 

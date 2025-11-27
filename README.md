@@ -60,7 +60,7 @@ See [frontend/README.md](frontend/README.md) for detailed setup instructions.
 
 ## API Documentation
 
-Access Swagger documentation at: `http://localhost:8000/api/documentation`
+Access Swagger documentation at: `http://localhost:8000/api/docs`
 
 ## Development
 

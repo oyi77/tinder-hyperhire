@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useImperativeHandle, forwardRef} from 'react';
 import {Animated, PanResponder, StyleSheet, View} from 'react-native';
 import ProfileCard from '../molecules/ProfileCard';
 import {Profile} from '../../types';
@@ -7,17 +7,72 @@ interface SwipeableCardProps {
   profile: Profile;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onSwipeMove?: (dx: number) => void;
   index: number;
 }
 
-const SwipeableCard: React.FC<SwipeableCardProps> = ({
-  profile,
-  onSwipeLeft,
-  onSwipeRight,
-  index,
-}) => {
+export interface SwipeableCardRef {
+  swipeRight: () => void;
+  swipeLeft: () => void;
+}
+
+const SwipeableCardComponent = (
+  {
+    profile,
+    onSwipeLeft,
+    onSwipeRight,
+    onSwipeMove,
+    index,
+  }: SwipeableCardProps,
+  ref: React.Ref<SwipeableCardRef>,
+) => {
   const position = useRef(new Animated.ValueXY()).current;
   const opacity = useRef(new Animated.Value(1)).current;
+
+  const performSwipe = (direction: 'right' | 'left') => {
+    const targetX = direction === 'right' ? 500 : -500;
+    
+    // Update swipe offset immediately for button feedback
+    if (onSwipeMove && index === 0) {
+      // Set initial offset
+      onSwipeMove(targetX > 0 ? 30 : -30);
+    }
+    
+    Animated.parallel([
+      Animated.timing(position, {
+        toValue: {x: targetX, y: 0},
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      if (direction === 'right') {
+        onSwipeRight();
+      } else {
+        onSwipeLeft();
+      }
+      if (onSwipeMove && index === 0) {
+        onSwipeMove(0);
+      }
+    });
+  };
+
+  useImperativeHandle(ref, () => ({
+    swipeRight: () => {
+      if (index === 0) {
+        performSwipe('right');
+      }
+    },
+    swipeLeft: () => {
+      if (index === 0) {
+        performSwipe('left');
+      }
+    },
+  }), [index]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -27,41 +82,18 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
         position.setValue({x: gestureState.dx, y: gestureState.dy});
         const opacityValue = 1 - Math.abs(gestureState.dx) / 200;
         opacity.setValue(Math.max(0, opacityValue));
+        if (onSwipeMove && index === 0) {
+          onSwipeMove(gestureState.dx);
+        }
       },
       onPanResponderRelease: (_, gestureState) => {
         const swipeThreshold = 120;
         if (gestureState.dx > swipeThreshold) {
           // Swipe right - like
-          Animated.parallel([
-            Animated.timing(position, {
-              toValue: {x: 500, y: gestureState.dy},
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            onSwipeRight();
-          });
+          performSwipe('right');
         } else if (gestureState.dx < -swipeThreshold) {
           // Swipe left - dislike
-          Animated.parallel([
-            Animated.timing(position, {
-              toValue: {x: -500, y: gestureState.dy},
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            onSwipeLeft();
-          });
+          performSwipe('left');
         } else {
           // Return to center
           Animated.parallel([
@@ -73,7 +105,11 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
               toValue: 1,
               useNativeDriver: true,
             }),
-          ]).start();
+          ]).start(() => {
+            if (onSwipeMove && index === 0) {
+              onSwipeMove(0);
+            }
+          });
         }
       },
     }),
@@ -98,10 +134,14 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
         },
       ]}
       {...panResponder.panHandlers}>
-      <ProfileCard profile={profile} showActions={true} />
+      <ProfileCard profile={profile} showActions={true} fullScreen={true} />
     </Animated.View>
   );
 };
+
+const SwipeableCard = forwardRef<SwipeableCardRef, SwipeableCardProps>(SwipeableCardComponent);
+
+SwipeableCard.displayName = 'SwipeableCard';
 
 const styles = StyleSheet.create({
   card: {
@@ -111,5 +151,6 @@ const styles = StyleSheet.create({
   },
 });
 
+export {SwipeableCard};
 export default SwipeableCard;
 

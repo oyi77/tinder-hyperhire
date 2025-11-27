@@ -1,13 +1,15 @@
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthResponse, Profile, LikeResponse} from '../types';
 import {API_BASE_URL} from '../utils/apiConfig';
+import {transformError} from '../utils/errorHandler';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add token to requests
@@ -32,7 +34,8 @@ api.interceptors.response.use(
       // Unauthorized - clear token and redirect to login
       await AsyncStorage.removeItem('auth_token');
     }
-    return Promise.reject(error);
+    // Transform error to have user-friendly messages
+    return Promise.reject(transformError(error));
   },
 );
 
@@ -100,6 +103,11 @@ export const peopleService = {
 
   undoLike: async (id: number): Promise<{message: string}> => {
     const response = await api.delete<{message: string}>(`/people/${id}/like`);
+    return response.data;
+  },
+
+  undoDislike: async (id: number): Promise<{message: string}> => {
+    const response = await api.delete<{message: string}>(`/people/${id}/dislike`);
     return response.data;
   },
 };
