@@ -20,15 +20,15 @@ public class MainApplication extends Application implements ReactApplication {
         }
 
         @Override
+        protected String getJSMainModuleName() {
+          return "index";
+        }
+
+        @Override
         protected List<ReactPackage> getPackages() {
           @SuppressWarnings("UnnecessaryLocalVariable")
           List<ReactPackage> packages = new PackageList(this).getPackages();
           return packages;
-        }
-
-        @Override
-        protected String getJSMainModuleName() {
-          return "index";
         }
 
         @Override

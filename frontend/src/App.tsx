@@ -6,12 +6,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppNavigator from './navigation/AppNavigator';
 import {userState, isAuthenticatedState} from './store/authState';
 import {authService} from './services/api';
+import {getErrorMessage} from './utils/errorHandler';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      onError: (error: any) => {
+        // Errors are already transformed by axios interceptor
+        // This is just a fallback for any errors that bypass the interceptor
+        console.error('Query error:', getErrorMessage(error));
+      },
+    },
+    mutations: {
+      onError: (error: any) => {
+        // Errors are already transformed by axios interceptor
+        // This is just a fallback for any errors that bypass the interceptor
+        console.error('Mutation error:', getErrorMessage(error));
+      },
     },
   },
 });

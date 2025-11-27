@@ -23,4 +23,5 @@ Route::prefix('people')->middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/dislike', [PeopleController::class, 'dislike']);
     Route::get('/liked', [PeopleController::class, 'liked']);
     Route::delete('/{id}/like', [PeopleController::class, 'undoLike']);
+    Route::delete('/{id}/dislike', [PeopleController::class, 'undoDislike']);
 });

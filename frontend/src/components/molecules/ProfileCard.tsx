@@ -6,21 +6,40 @@ import {Profile} from '../../types';
 interface ProfileCardProps {
   profile: Profile;
   showActions?: boolean;
+  fullScreen?: boolean;
 }
 
-const {width} = Dimensions.get('window');
-const CARD_WIDTH = width - 40;
-const CARD_HEIGHT = CARD_WIDTH * 1.4;
+const {width, height} = Dimensions.get('window');
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
   showActions = false,
+  fullScreen = false,
 }) => {
-  const images = profile.pictures || [];
+  // Normalize pictures to always be an array
+  const normalizePictures = (pictures: any): string[] => {
+    if (!pictures) return [];
+    if (Array.isArray(pictures)) return pictures;
+    if (typeof pictures === 'string') {
+      try {
+        const parsed = JSON.parse(pictures);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const images = normalizePictures(profile.pictures);
   const currentImage = images[0] || '';
 
+  const cardStyle = fullScreen
+    ? [styles.container, styles.fullScreenContainer]
+    : styles.container;
+
   return (
-    <View style={styles.container}>
+    <View style={cardStyle}>
       <Image
         source={{uri: currentImage}}
         style={styles.image}
@@ -43,6 +62,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </View>
       )}
       <View style={styles.overlay}>
+        {/* Multiple gradient layers for smooth fade */}
+        <View style={styles.gradientLayer1} />
+        <View style={styles.gradientLayer2} />
+        <View style={styles.gradientLayer3} />
         <View style={styles.info}>
           <Text variant="h2" style={styles.name}>
             {profile.name}, {profile.age}
@@ -60,16 +83,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 12,
+    width: width - 40,
+    height: (width - 40) * 1.4,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fullScreenContainer: {
+    width: width,
+    height: height * 0.9,
+    borderRadius: 20,
+    margin: 0,
+    marginTop: -80,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 12,
   },
   image: {
     width: '100%',
@@ -98,19 +134,54 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 16,
+    padding: 24,
+    paddingBottom: 120,
+    zIndex: 1,
+    height: 200,
+  },
+  gradientLayer1: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+  },
+  gradientLayer2: {
+    position: 'absolute',
+    bottom: 80,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  gradientLayer3: {
+    position: 'absolute',
+    bottom: 140,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   info: {
     flexDirection: 'column',
+    zIndex: 2,
   },
   name: {
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 6,
     fontWeight: 'bold',
+    fontSize: 28,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 4,
   },
   location: {
     color: '#fff',
+    fontSize: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 3,
   },
 });
 
